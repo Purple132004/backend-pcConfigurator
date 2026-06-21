@@ -43,6 +43,33 @@ class ComponentController extends Controller
             'is_active' => ['boolean'],
         ]);
 
+        $category = \App\Models\ComponentCategory::find($data['category_id']);
+
+        $specsRules = match ($category->slug) {
+            'cpu' => [
+                'specs.ram_type' => ['required', 'in:DDR4,DDR5'],
+                'specs.ram_slots' => ['required', 'integer', 'min:1'],
+            ],
+            'ram' => [
+                'specs.type' => ['required', 'in:DDR4,DDR5'],
+                'specs.capacity' => ['required', 'integer', 'min:1'],
+            ],
+            'gpu' => [
+                'specs.length' => ['required', 'integer', 'min:1'],
+            ],
+            'case' => [
+                'specs.max_gpu_length' => ['required', 'integer', 'min:1'],
+                'specs.storage_bays' => ['required', 'integer', 'min:1'],
+            ],
+            'storage' => [
+                'specs.type' => ['required', 'in:SSD,HDD'],
+                'specs.capacity' => ['required', 'integer', 'min:1'],
+            ],
+            default => [],
+        };
+
+        $request->validate($specsRules);
+
         return response()->json($this->service->createComponent($data), 201);
     }
 
@@ -55,6 +82,35 @@ class ComponentController extends Controller
             'specs' => ['sometimes', 'array'],
             'is_active' => ['sometimes', 'boolean'],
         ]);
+
+        if (isset($data['specs'])) {
+            $category = $component->category;
+
+            $specsRules = match ($category->slug) {
+                'cpu' => [
+                    'specs.ram_type' => ['required', 'in:DDR4,DDR5'],
+                    'specs.ram_slots' => ['required', 'integer', 'min:1'],
+                ],
+                'ram' => [
+                    'specs.type' => ['required', 'in:DDR4,DDR5'],
+                    'specs.capacity' => ['required', 'integer', 'min:1'],
+                ],
+                'gpu' => [
+                    'specs.length' => ['required', 'integer', 'min:1'],
+                ],
+                'case' => [
+                    'specs.max_gpu_length' => ['required', 'integer', 'min:1'],
+                    'specs.storage_bays' => ['required', 'integer', 'min:1'],
+                ],
+                'storage' => [
+                    'specs.type' => ['required', 'in:SSD,HDD'],
+                    'specs.capacity' => ['required', 'integer', 'min:1'],
+                ],
+                default => [],
+            };
+
+            $request->validate($specsRules);
+        }
 
         return response()->json($this->service->updateComponent($component, $data));
     }
